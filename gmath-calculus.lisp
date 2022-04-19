@@ -73,7 +73,7 @@
 		 ((equal fir '/)
 		  `(/ (- (* ,(gmath-calculus-differential-main sec var) ,(push '* re))
 			 (* ,sec ,(gmath-calculus-differential-main re var)))
-		      (expt ,(push '* re) 2)))
+		      (expt ,re 2)))
 		 ((equal fir '=)
 		  (let (ans)
 		    (concatenate 'list '(=)
@@ -93,7 +93,7 @@
 		 ((equal fir 'cos)
 		  `(* -1 (sin ,sec) ,(gmath-calculus-differential-main sec var)))
 		 ((equal fir 'tan)
-		  `(* (/ 1 (expt ,sec 2)) ,(gmath-calculus-differential-main sec var)))
+		  `(* (/ 1 (expt (cos ,sec) 2)) ,(gmath-calculus-differential-main sec var)))
 		 ((equal fir 'sinh)
 		  `(* (cosh ,sec) ,(gmath-calculus-differential-main sec var)))
 		 ((equal fir 'cosh)
@@ -103,6 +103,10 @@
 		 (t 0))))
 	  ((equal sentence var) 1)
 	  (t 0)))
+
+(defun differential-at (sentence var value &optional (time 1))
+  (eval `(let ((,var ,value))
+	   ,(differential sentence var time))))
 
 (defun gmath-calculus-differential-modify (sentence)
   (cond ((not (consp sentence)) sentence)
@@ -150,7 +154,7 @@
 		      (if (not (equal item 0))
 			  (if (not (equal item 1))
 			      (if (consp item)
-				  (if (equal (first item) '+)
+				  (if (equal (first item) '*)
 				      (progn
 					(pop item)
 					(setq ans (concatenate 'list ans item)))
@@ -188,3 +192,25 @@
       sentence
       (gmath-calculus-differential-modify (gmath-calculus-differential-main (differential sentence var (1- time)) var))))
 
+(defun numerical-integrate (fx x-beg x-end step-num &optional (method 'simpson))
+  (let ((step (/ (- x-end x-beg) step-num))
+	(func (case method
+		('simpson (lambda (fx x0 x1)
+			    (let ((xm (/ (+ x0 x1) 2))
+				  (h (- x1 x0)))
+			      (* h (+ (funcall fx x0) (funcall fx x1) (* 4 (funcall fx xm))) 1/6))))
+		('mid (lambda (fx x0 x1)
+			(let ((xm (/ (+ x0 x1) 2))
+			      (h (- x1 x0)))
+			  (* h (funcall fx xm)))))
+		('trapezoidal (lambda (fx x0 x1)
+				(let ((h (- x1 x0)))
+				  (* h (+ (funcall fx x0) (funcall fx x1)) 1/2))))
+		(otherwise (if (typep method 'function)
+			       method
+			       (error "NUMERICAL-INTEGRATE: method 提供错误!")))))
+	(ans 0))
+    (dotimes (i step-num ans)
+      (let* ((x0 (+ x-beg (* step i)))
+	     (x1 (+ x0 step)))
+	(incf ans (funcall func fx x0 x1))))))
