@@ -1,5 +1,10 @@
 (defun help (symbol-or-function)
   (case symbol-or-function
+    ('*gmath-linearal-matrix-explain-ioformat*
+     (print "全局变量，默认值为 \"~a~,8t\"")
+     (print "用于控制矩阵表达时数据形式与数据间距")
+     (print "源 gmath-linearAl")
+     (print "函数定位 (explain MATRIX)"))
 
     ('differential
      (print "differential (sentence var &optional (time 1))")

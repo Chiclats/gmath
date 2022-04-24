@@ -26,6 +26,8 @@
       (apply #'+ (map 'list #'* v1 v2))
       (first (content (mtx_* (v->m v1) metric-matrix (turn (v->m v2)))))))
 
+(defvar *gmath-linearAl-matrix-explain-ioformat* "~a~,8t")
+
 (defclass matrix ()
   ((content
     :initarg :content
@@ -35,7 +37,7 @@
   (format io-stream "~d * ~d :~%" (length (content object)) (length (first (content object))))
   (dolist (v (content object))
     (dolist (s v)
-      (format io-stream "~a~,8t" s))
+      (format io-stream *gmath-linearal-matrix-explain-ioformat* s))
     (format io-stream "~%"))
   object)
 
@@ -141,11 +143,18 @@
 (defun rank (mtx_or_v1 &rest v_rest)
   (if (equal (type-of mtx_or_v1) 'cons)
       (rank (make-instance 'matrix :content (push mtx_or_v1 v_rest)))
-      (position-if (lambda (v) (apply #'= 0 v)) (content (triu-r mtx_or_v1)))))
+      (or (position-if (lambda (v) (apply #'= 0 v)) (content (triu-r mtx_or_v1)))
+	  (length (content mtx_or_v1)))))
 
 (defun unitary-matrix (n)
   (diag (let (ans)
 	  (dotimes (i n ans) (push 1 ans)))))
+
+(defun diag (diag-els)
+  (let* ((n (length diag-els))
+	 (ans (zeros-mtx n)))
+    (dotimes (i n ans)
+      (setel ans i i (nth i diag-els)))))
 
 (defun inv (mtx)
   (let* ((t-m (turn mtx))
@@ -158,7 +167,7 @@
 		(error "The matrix supplied is a singular matrix!")
 		t))
 	 mtemp ans-l)
-    (setf (content t-m) (concatenate 'list (content t-m) (unitary-matrix r)))
+    (setf (content t-m) (concatenate 'list (content t-m) (content (unitary-matrix r))))
     (setf mtemp (triu-r (turn t-m)))
     (dotimes (i r (turn (make-instance 'matrix :content ans-l)))
       (push (c-vec mtemp (+ r r (- i) -1)) ans-l))))
@@ -184,9 +193,9 @@
 							(if (/= (- (length l-mtx) j 1) i)
 							    (push (funcall c-v l-mtx (- (length l-mtx) j 1) 1) anss))))))))))))
 
-(defun smtx (elmt-list)
-  (let ((c (position '* elmt-list))
-	(lst (remove '* elmt-list))
+(defun smtx (&rest elmts);;;;;;;;;;;;;;;;
+  (let ((c (position '* elmts))
+	(lst (remove '* elmts))
 	r-v
 	ans)
     (dotimes (i (length lst) (make-instance 'matrix :content ans))
@@ -195,6 +204,9 @@
 	  (progn 
 	    (setq ans (concatenate 'list ans `(,r-v)))
 	    (setq r-v nil))))))
+
+(defun gmath-linearAl-separated-smtx (list)
+  (apply 'smtx list))
 
 (defun full-rank-p (matrix)
   (not (= (det matrix) 0)))
@@ -214,8 +226,8 @@
       (if (= i (- (* c r) c 1))
 	  (push '* ans)))))
 
-(defun zeros-mtx (r &optional (c 1 c-s-p))
+(defun zeros-mtx (r &optional (c 'same-as-r c-s-p))
   (if (not c-s-p) (setq c r))
   (let* ((m-l (gmath-linearal-zero-mtx-zero-list r c))
-	 (fans (smtx m-l)))
+	 (fans (gmath-linearal-separated-smtx m-l)))
     fans))
