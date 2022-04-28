@@ -35,3 +35,28 @@
      t)
 
     (otherwise (error "HELP: 未找到该名称的符号或函数!"))))
+
+(defvar *gmath-help-list*)
+
+(defun gmath-help-load-help-text ()
+  (let ((f_i (open "d:/emacs-27.2-x86_64/programs/gmath/gmath-help-text" :if-does-not-exist :create)))
+    (setq *gmath-help-list* (read f_i))))
+
+(defun add-help (symbol doc)
+  (push (cons symbol doc) *gmath-help-list*)
+  (cons symbol doc))
+
+(defun overwrite-help (symbol doc)
+  (if (position symbol *gmath-help-list* :key 'car)
+      (error "OVERWRITE-HELP: 未找到该符号"))
+  (setf (nth (position symbol *gmath-help-list* :key 'car) *gmath-help-list*) (cons symbol doc)))
+
+(defun help (symbol)
+  (if (not (position symbol *gmath-help-list* :key 'car))
+      nil
+      (progn
+	(print symbol)
+	(print (cdr (nth (position symbol *gmath-help-list* :key 'car) *gmath-help-list*)))
+	t)))
+  
+(gmath-help-load-help-text)

@@ -26,6 +26,19 @@
       (apply #'+ (map 'list #'* v1 v2))
       (first (content (mtx_* (v->m v1) metric-matrix (turn (v->m v2)))))))
 
+(defun outer_* (v1 v2)
+  (if (not (= 3 (length v1) (length v2)))
+      (error "OUTER_*: the lengths of v1 & v2 should be 3"))
+  (let ((x1 (car v1))
+	(x2 (car v2))
+	(y1 (second v1))
+	(y2 (second v2))
+	(z1 (third v1))
+	(z2 (third v2)))
+    (list (- (* y1 z2) (* y2 z1))
+	  (- (* z1 x2) (* z2 x1))
+	  (- (* x1 y2) (* x2 y1)))))
+
 (defvar *gmath-linearAl-matrix-explain-ioformat* "~a~,8t")
 
 (defclass matrix ()
@@ -34,11 +47,12 @@
     :initform '((0))
     :accessor content)))
 (defmethod explain ((object matrix) &key (io-stream t))
-  (format io-stream "~d * ~d :~%" (length (content object)) (length (first (content object))))
+  (format io-stream "~d * ~d :~%~%" (length (content object)) (length (first (content object))))
   (dolist (v (content object))
     (dolist (s v)
       (format io-stream *gmath-linearal-matrix-explain-ioformat* s))
     (format io-stream "~%"))
+  (format io-stream "~%")
   object)
 
 (defun mtx_* (m1 &rest rest)
@@ -219,15 +233,27 @@
 	(setf (nth r (content mtx)) row)
 	mtx)))
 
-(defun gmath-linearAl-zero-mtx-zero-list (r c)
+(defun gmath-linearAl-homo-mtx-homo-list (r c e)
   (let (ans)
     (dotimes (i (* c r) ans)
-      (push 0 ans)
+      (push e ans)
       (if (= i (- (* c r) c 1))
 	  (push '* ans)))))
 
-(defun zeros-mtx (r &optional (c 'same-as-r c-s-p))
+(defun homo-mtx (element r &optional (c 'same-as-r c-s-p))
   (if (not c-s-p) (setq c r))
-  (let* ((m-l (gmath-linearal-zero-mtx-zero-list r c))
+  (let* ((m-l (gmath-linearal-homo-mtx-homo-list r c element))
 	 (fans (gmath-linearal-separated-smtx m-l)))
     fans))
+
+(defun zeros-mtx (r &optional (c 'same-as-r c-s-p))
+  (if (not c-s-p) (setq c r))
+  (homo-mtx 0 r c))
+
+(defun hilbert-mtx (n)
+  (let ((ans (zeros-mtx n)))
+    (dotimes (i n ans)
+      (dotimes (j n)
+	(setel ans i j (/ (+ i j 1)))))))
+
+;(defun lu-decomp (mtx &optional (

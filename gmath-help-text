@@ -1,0 +1,12 @@
+(
+(*gmath-linearal-matrix-explain-ioformat* .
+"全局变量，默认值为 \"~a~,8t\"
+用于控制矩阵表达时数据形式与数据间距
+源 gmath-linearAl
+函数定位 (explain MATRIX)")
+(differential .
+"differential (sentence var &optional (time 1))
+对表达式 sentence 中变量 var 求符号微分, time 表示求微分的阶数
+源 gmath-calculus
+内置函数 gmath-calculus-differential-modify gmath-calculus-differential-main"))   
+   
