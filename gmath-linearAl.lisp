@@ -55,6 +55,28 @@
   (format io-stream "~%")
   object)
 
+(defmethod setel ((mtx matrix) new-value place)
+  (if (not (= (length place) 2)) (error "SETEL with matrix: place should be a list with 2 element"))
+  (let ((r (car place))
+	(c (second place)))
+    (if (or (>= r (length (content mtx))) (>= c (length (first (content mtx)))))
+	(error "SETEL: The position supplied is not in the scale of the matrix.")
+	(let* ((row (nth r (content mtx))))
+	  (setf (nth c row) new-value)
+	  (setf (nth r (content mtx)) row)
+	  mtx))))
+
+(defmacro setm (mtx r c new-value)
+  `(setel ,mtx ,new-value (list ,r ,c)))
+
+;(if (or (>= r (length (content mtx))) (>= c (length (first (content mtx)))))
+;      (error "In SETEL: The position supplied is not in the scale of the matrix.")
+;      (let* ((row (nth r (content mtx))))
+;	(setf (nth c row) new-value)
+;	(setf (nth r (content mtx)) row)
+;	mtx)))
+    
+
 (defun mtx_* (m1 &rest rest)
   (if (equal rest nil)
       m1
@@ -168,7 +190,7 @@
   (let* ((n (length diag-els))
 	 (ans (zeros-mtx n)))
     (dotimes (i n ans)
-      (setel ans i i (nth i diag-els)))))
+      (setm ans i i (nth i diag-els)))))
 
 (defun inv (mtx)
   (let* ((t-m (turn mtx))
@@ -225,13 +247,14 @@
 (defun full-rank-p (matrix)
   (not (= (det matrix) 0)))
 
-(defun setel (mtx r c new-value)
-  (if (or (>= r (length (content mtx))) (>= c (length (first (content mtx)))))
-      (error "In SETEL: The position supplied is not in the scale of the matrix.")
-      (let* ((row (nth r (content mtx))))
-	(setf (nth c row) new-value)
-	(setf (nth r (content mtx)) row)
-	mtx)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;(defun setel (mtx r c new-value)
+;  (if (or (>= r (length (content mtx))) (>= c (length (first (content mtx)))))
+;      (error "In SETEL: The position supplied is not in the scale of the matrix.")
+;      (let* ((row (nth r (content mtx))))
+;	(setf (nth c row) new-value)
+;	(setf (nth r (content mtx)) row)
+;	mtx)))
 
 (defun gmath-linearAl-homo-mtx-homo-list (r c e)
   (let (ans)
@@ -254,6 +277,6 @@
   (let ((ans (zeros-mtx n)))
     (dotimes (i n ans)
       (dotimes (j n)
-	(setel ans i j (/ (+ i j 1)))))))
+	(setm ans i j (/ (+ i j 1)))))))
 
-;(defun lu-decomp (mtx &optional (
+

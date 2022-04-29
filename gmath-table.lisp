@@ -1,0 +1,16 @@
+(defmethod setel ((seq list) new-element place)
+  (if (not (typep place 'list)) (error "SETEL: place should be a list"))
+  (if (= 1 (length place))
+      (setf (elt seq (car place)) new-element)
+      (let (b
+	    (n (pop place)))
+	(setq b (elt seq n))
+	(setq b (concatenate 'list b))
+	(setel b new-element place)
+	(setf (elt seq n) b)))
+  seq)
+
+(defun make-table (size-list &key (initial-value 0))
+  (if (= (length size-list) 1)
+      (make-list (car size-list) :initial-element initial-value)
+      (make-list (pop size-list) :initial-element (make-table size-list :initial-value initial-value))))

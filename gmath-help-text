@@ -1,12 +1,57 @@
 (
+
 (*gmath-linearal-matrix-explain-ioformat* .
-"全局变量，默认值为 \"~a~,8t\"
+"[var]
+
+默认值为 \"~a~,8t\"
 用于控制矩阵表达时数据形式与数据间距
-源 gmath-linearAl
-函数定位 (explain MATRIX)")
+
+[源] gmath-linearAl
+[定位] (explain MATRIX)")
+
 (differential .
-"differential (sentence var &optional (time 1))
+"differential [fun] (sentence var &optional (time 1))
+
 对表达式 sentence 中变量 var 求符号微分, time 表示求微分的阶数
-源 gmath-calculus
-内置函数 gmath-calculus-differential-modify gmath-calculus-differential-main"))   
-   
+
+[源] gmath-calculus
+[内置] gmath-calculus-differential-modify gmath-calculus-differential-main")
+
+(setel .
+"setel [gen] (object new-value place)
+
+对 object 的 place 位置经行赋值，新值为 new-value
+其中 object 可为 matrix、table、sequence
+place 为一个 list
+
+[源] gmath-before gmath-linearAl gmath-table")
+
+(setm .
+"setm [mac] (mtx r c new-value)
+
+对矩阵 mtx 的 r 行 c 列经行赋值，新值为 new-value
+
+[源] gmath-linearAl
+[内置] setel")
+
+(smtx .
+"smtx [fun] (&rest elmts)
+
+创建一个以 elmts 为元素的矩阵
+其中 elmts 为数个数值或其他元素，用 '* 标志第一行的结束
+
+[例]
+>> (explain (smtx 1 2 3 '*
+   	    	  4 5 6
+		  7 8 9))
+
+3 * 3 :
+
+1        2       3       
+4        5       6       
+7        8       9       
+
+#<MATRIX {********}>
+[源] gmath-linearAl")
+
+)
